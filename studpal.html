@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudPal</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+  body{display:flex;height:100vh;background:#f5f5f5;transition:0.3s;}
+  [data-theme="dark"]{background:#1e1e1e;color:#fff;}
+  .sidebar{width:250px;background:#fff;display:flex;flex-direction:column;border-right:1px solid #ccc;padding:20px;}
+  [data-theme="dark"] .sidebar{background:#2c2c2c;border-color:#473a9cb9;}
+  .sidebar h2{text-align:center;padding:1rem;background: #0a32d1;;color:#fff;border-radius:5px;margin-bottom:10px;}
+  .sidebar button,.menu li{padding:1rem;border:none;background:none;text-align:left;width:100%;cursor:pointer;transition:0.2s;margin-bottom:5px;}
+  .sidebar button:hover,.menu li:hover{background:#f0f0f0;}
+  [data-theme="dark"] .sidebar button:hover,.menu li:hover{background:#000000;}
+  .main{flex:1;padding:1rem;overflow-y:auto;}
+  .section{display:none;margin-bottom:20px;}
+  .section.active{display:block;}
+  .note-form input,.note-form textarea,.note-form select,.task-form input,.task-form select,.flashcard-inputs input{width:100%;padding:0.5rem;margin:0.2rem 0;border:1px solid #ccc;border-radius:4px;}
+  .note-form button,.task-form button,.flashcard-inputs button,.flash-controls button,.pomodoro-controls button,.calculator button{padding:0.5rem 1rem;margin:0.2rem;border:none;border-radius:4px;background:#0c0359;color:#fff;cursor:pointer;}
+  .note-form button:hover,.task-form button:hover,.flashcard-inputs button:hover,.flash-controls button:hover,.pomodoro-controls button:hover,.calculator button:hover{opacity:0.8;}
+  .notes-list,.tasks-list,.flashcards-list,.flashcard-display{margin-top:1rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0.5rem;}
+  .note-card,.task-card,.flashcard{padding:0.5rem;background:#fff;border:1px solid #ccc;border-radius:4px;word-wrap:break-word;}
+  [data-theme="dark"] .note-card,[data-theme="dark"] .task-card,[data-theme="dark"] .flashcard{background:#21239cb6;border-color:#03086a;}
+  .flashcard-fullscreen,.flashcard-review,.pomodoro-fullscreen{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:1000;}
+  .flashcard-fullscreen,.flashcard-review{background:#0a32d1;color:#fff;font-size:2rem;}
+  .pomodoro-fullscreen{background:#0c0359;color:#fff;font-size:3rem;}
+  .calculator{display:grid;grid-template-columns:repeat(4,1fr);gap:0.3rem;width:250px;}
+  .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:0.3rem;}
+  .calendar div{padding:0.5rem;text-align:center;background:#fff;border:1px solid #ccc;border-radius:4px;}
+  [data-theme="dark"] .calendar div{background:#000000;border-color:#050404;}
+  /* Flashcard inputs from Lora style */
+  .flashcard-inputs{display:flex;gap:10px;margin-bottom:10px;}
+  .flashcard-inputs input{flex:1;padding:5px;}
+  .flashcards-list{max-height:120px;overflow:auto;margin-bottom:10px;}
+  .flashcard-review{background:#000000dd;color:#fff;font-size:24px;}
+  .flashcard-review button{padding:10px;margin:5px;font-size:18px;}
+</style>
+</head>
+<body data-theme="light">
+
+<div class="sidebar">
+  <h2>StudPal</h2>
+  <button data-section="notes">Notes</button>
+  <button data-section="tasks">Tasks</button>
+  <button data-section="flashcards">Practice Quizbee</button>
+  <button data-section="flashcardReviewSection">Flashcard Reviewer</button>
+  <button data-section="pomodoro">Pomodoro</button>
+  <button data-section="calculator">Calculator</button>
+  <button data-section="calendar">Calendar</button>
+  <div style="margin-top:auto;padding:1rem;">
+    <label>Dark Mode</label>
+    <input type="checkbox" id="themeToggle">
+  </div>
+</div>
+
+<div class="main">
+  <!-- NOTES -->
+  <div id="notes" class="section active">
+    <h2>Notes</h2>
+    <div class="note-form">
+      <input type="text" id="noteSubject" placeholder="Subject">
+      <select id="noteCategory">
+            <option value="">Category</option>
+            <option>Major</option>
+            <option>Core</option>
+            <option>Minor</option>
+            <option>Gen-Ed</option>
+        </select>
+        <select id="noteLabel">
+            <option value="">Label</option>
+            <option>Academics</option>
+            <option>Personal</option>
+            <option>Work</option>
+            <option>Group Projects</option>
+            <option>Research</option>
+            <option>Reminder</option>
+            <option>Club/Organization</option>
+        </select>
+        <select id="noteDescription">
+            <option value="">Description</option>
+            <option>Meeting</option>
+            <option>Discussion</option>
+            <option>Appointment</option>
+            <option>Updates</option>
+        </select>
+      <textarea id="noteContent" placeholder="Content"></textarea>
+      <button id="saveNote">Save Note</button>
+    </div>
+    <div class="notes-list" id="notesList"></div>
+  </div>
+
+  <!-- TASKS -->
+  <div id="tasks" class="section">
+    <h2>Tasks</h2>
+    <div class="task-form">
+      <input type="text" id="taskName" placeholder="Task Name">
+      <input type="text" id="taskSubject" placeholder="Subject">
+      <input type="date" id="taskDate">
+      <select id="taskCategory"><option>Major</option><option>Minor</option><option>Core</option><option>Gen-Ed</option></select>
+      <select id="noteCategory">
+            <option value="">Category</option>
+            <option>Major</option>
+            <option>Core</option>
+            <option>Minor</option>
+            <option>Gen-Ed</option>
+        </select>
+        <select id="noteLabel">
+            <option value="">Label</option>
+            <option>Academics</option>
+            <option>Personal</option>
+            <option>Work</option>
+            <option>Group Projects</option>
+            <option>Research</option>
+            <option>Reminder</option>
+            <option>Club/Organization</option>
+        </select>
+        <select id="noteDescription">
+            <option value="">Description</option>
+            <option>Meeting</option>
+            <option>Discussion</option>
+            <option>Appointment</option>
+            <option>Updates</option>
+        </select>
+      <button id="saveTask">Save Task</button>
+      <button id="editTask">
+    </div>
+    <div class="tasks-list" id="tasksList"></div>
+  </div>
+
+  <!-- FLASHCARDS SIMPLE -->
+  <div id="flashcards" class="section">
+    <h2>Flashcards</h2>
+    <div class="flash-form">
+      <input type="text" id="flashQ" placeholder="Question">
+      <input type="text" id="flashA" placeholder="Answer">
+      <button id="saveFlash">Add Flashcard</button>
+    </div>
+    <div class="flash-controls">
+      <button id="showFlash">Show Flashcard Fullscreen</button>
+    </div>
+  </div>
+
+  <!-- FLASHCARD REVIEWER (Lora Style) -->
+  <div id="flashcardReviewSection" class="section">
+    <h2>Flashcard Reviewer</h2>
+    <div class="flashcard-inputs">
+      <input type="text" id="questionInput" placeholder="Enter Question">
+      <input type="text" id="answerInput" placeholder="Enter Answer">
+      <button onclick="addFlashcard()">Add Flashcard</button>
+    </div>
+    <div class="flashcards-list" id="flashcardsList"></div>
+    <button onclick="startReview()">Start Review</button>
+  </div>
+
+  <!-- POMODORO -->
+  <div id="pomodoro" class="section">
+    <h2>Pomodoro Timer</h2>
+    <input type="number" id="pomMinutes" placeholder="Minutes" value="25">
+    <div class="pomodoro-controls">
+      <button id="startPom">Start</button>
+      <button id="pausePom">Pause</button>
+      <button id="resetPom">Reset</button>
+    </div>
+  </div>
+
+  <!-- CALCULATOR -->
+  <div id="calculator" class="section">
+    <h2>Calculator</h2>
+    <input type="text" id="calcDisplay" readonly style="width:100%;padding:0.5rem;margin-bottom:0.5rem;font-size:1.2rem;">
+    <div class="calculator" id="calcButtons">
+      <button>7</button><button>8</button><button>9</button><button>/</button>
+      <button>4</button><button>5</button><button>6</button><button>*</button>
+      <button>1</button><button>2</button><button>3</button><button>-</button>
+      <button>0</button><button>.</button><button>=</button><button>+</button>
+      <button style="grid-column: span 4;" id="clearCalc">Clear</button>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div id="calendar" class="section">
+    <h2>Calendar</h2>
+    <div class="calendar" id="calendarGrid"></div>
+  </div>
+</div>
+
+<!-- FULLSCREEN FLASHCARDS -->
+<div id="flashFullscreen" class="flashcard-fullscreen" style="display:none;">
+  <div id="flashContent"></div>
+  <button id="closeFlash">Close</button>
+</div>
+
+<!-- FLASHCARD REVIEW FULLSCREEN -->
+<div class="flashcard-review" id="flashcardReview" style="display:none;">
+  <div id="flashcardQuestion">Question</div>
+  <div id="flashcardTimer">5</div>
+  <button onclick="nextFlashcard()">Next</button>
+  <button onclick="passFlashcard()">Pass</button>
+</div>
+
+<!-- POMODORO FULLSCREEN -->
+<div id="pomFullscreen" class="pomodoro-fullscreen" style="display:none;">
+  <div id="pomTime"></div>
+  <button id="closePom">Close</button>
+</div>
+
+<script>
+  // THEME TOGGLE
+  const themeToggle=document.getElementById('themeToggle');
+  themeToggle.addEventListener('change',()=>{ document.body.dataset.theme=themeToggle.checked?'dark':'light'; });
+
+  // NAVIGATION
+  const sections=document.querySelectorAll('.section');
+  document.querySelectorAll('.sidebar button').forEach(btn=>{
+    btn.addEventListener('click',()=>{ 
+      sections.forEach(s=>s.classList.remove('active'));
+      document.getElementById(btn.dataset.section).classList.add('active');
+    });
+  });
+
+  // NOTES
+  let notes=JSON.parse(localStorage.getItem('notes')||'[]');
+  const noteSubject=document.getElementById('noteSubject');
+  const noteContent=document.getElementById('noteContent');
+  const saveNote=document.getElementById('saveNote');
+  const notesList=document.getElementById('notesList');
+  function renderNotes(){ notesList.innerHTML=''; notes.forEach((n,i)=>{ const div=document.createElement('div'); div.className='note-card'; div.innerHTML=`<b>${n.subject}</b><p>${n.content}</p>`; notesList.appendChild(div); });}
+  saveNote.addEventListener('click',()=>{ if(!noteSubject.value || !noteContent.value)return alert("Fill fields!"); notes.push({subject:noteSubject.value,content:noteContent.value}); localStorage.setItem('notes',JSON.stringify(notes)); noteSubject.value=''; noteContent.value=''; renderNotes();});
+  renderNotes();
+
+  // TASKS
+  let tasks=JSON.parse(localStorage.getItem('tasks')||'[]');
+  const taskName=document.getElementById('taskName');
+  const taskSubject=document.getElementById('taskSubject');
+  const taskDate=document.getElementById('taskDate');
+  const taskCategory=document.getElementById('taskCategory');
+  const saveTask=document.getElementById('saveTask');
+  const tasksList=document.getElementById('tasksList');
+  function renderTasks(){ tasksList.innerHTML=''; tasks.forEach(t=>{ const div=document.createElement('div'); div.className='task-card'; div.innerHTML=`<b>${t.name}</b><p>${t.subject}</p><p>${t.date}</p><p>${t.category}</p>`; tasksList.appendChild(div); });}
+  saveTask.addEventListener('click',()=>{ if(!taskName.value || !taskSubject.value || !taskDate.value)return alert("Fill fields!"); tasks.push({name:taskName.value,subject:taskSubject.value,date:taskDate.value,category:taskCategory.value}); localStorage.setItem('tasks',JSON.stringify(tasks)); taskName.value='';taskSubject.value='';taskDate.value='';taskCategory.value='Major'; renderTasks();});
+  renderTasks();
+
+  // FLASHCARDS SIMPLE
+  let flashcardsSimple=JSON.parse(localStorage.getItem('flashcards')||'[]');
+  const flashQ=document.getElementById('flashQ');
+  const flashA=document.getElementById('flashA');
+  const saveFlash=document.getElementById('saveFlash');
+  const showFlash=document.getElementById('showFlash');
+  const flashFullscreen=document.getElementById('flashFullscreen');
+  const flashContent=document.getElementById('flashContent');
+  let currentFlash=0;
+  function renderFlashcardSimple(){ if(flashcardsSimple.length===0){alert("No flashcards!"); return;} const card=flashcardsSimple[currentFlash]; flashContent.innerHTML=`<b>Q:</b> ${card.q}<br><b>A:</b> ${card.a}`; flashFullscreen.style.display='flex';}
+  saveFlash.addEventListener('click',()=>{ if(!flashQ.value||!flashA.value)return alert("Fill fields!"); flashcardsSimple.push({q:flashQ.value,a:flashA.value}); localStorage.setItem('flashcards',JSON.stringify(flashcardsSimple)); flashQ.value=''; flashA.value='';});
+  showFlash.addEventListener('click',()=>{ currentFlash=0; renderFlashcardSimple(); });
+  document.getElementById('closeFlash').addEventListener('click',()=>{ flashFullscreen.style.display='none'; currentFlash=(currentFlash+1)%flashcardsSimple.length; });
+
+  // FLASHCARD REVIEWER (Lora)
+  let flashcardsReview=[];
+  let currentIndex=0;
+  let timerInterval;
+  function addFlashcard(){ const q=document.getElementById('questionInput').value; const a=document.getElementById('answerInput').value; if(q && a){ flashcardsReview.push({q,a}); document.getElementById('flashcardsList').innerHTML = flashcardsReview.map((f,i)=>`<div class="flashcard"><b>${i+1}.</b> Q: ${f.q} | A: ${f.a}</div>`).join(''); document.getElementById('questionInput').value=''; document.getElementById('answerInput').value='';}}
+  function startReview(){ if(flashcardsReview.length===0){alert('Add flashcards first'); return;} currentIndex=0; showFlashcardReview();}
+  function showFlashcardReview(){ document.getElementById('flashcardReview').style.display='flex'; document.getElementById('flashcardQuestion').innerText=flashcardsReview[currentIndex].q; startTimer();}
+  function startTimer(){ let time=5; document.getElementById('flashcardTimer').innerText=time; clearInterval(timerInterval); timerInterval=setInterval(()=>{time--; document.getElementById('flashcardTimer').innerText=time; if(time<=0){clearInterval(timerInterval); alert('Answer: '+flashcardsReview[currentIndex].a);}},1000);}
+  function nextFlashcard(){ clearInterval(timerInterval); currentIndex++; if(currentIndex>=flashcardsReview.length){ document.getElementById('flashcardReview').style.display='none'; return;} showFlashcardReview();}
+  function passFlashcard(){ nextFlashcard();}
+
+  // POMODORO
+  let pomRemaining=0,pomTimer;
+  const pomInput=document.getElementById('pomMinutes');
+  const startPom=document.getElementById('startPom');
+  const pausePom=document.getElementById('pausePom');
+  const resetPom=document.getElementById('resetPom');
+  const pomFullscreen=document.getElementById('pomFullscreen');
+  const pomTime=document.getElementById('pomTime');
+  const closePom=document.getElementById('closePom');
+  function updatePomDisplay(){ let m=Math.floor(pomRemaining/60),s=pomRemaining%60; pomTime.innerText=`${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;}
+  startPom.addEventListener('click',()=>{ pomRemaining=pomInput.value*60; pomFullscreen.style.display='flex'; updatePomDisplay(); clearInterval(pomTimer); pomTimer=setInterval(()=>{ if(pomRemaining<=0){clearInterval(pomTimer); alert('Time up!'); return;} pomRemaining--; updatePomDisplay();},1000);});
+  pausePom.addEventListener('click',()=>{ clearInterval(pomTimer);});
+  resetPom.addEventListener('click',()=>{ clearInterval(pomTimer); pomRemaining=0; updatePomDisplay(); pomFullscreen.style.display='none';});
+  closePom.addEventListener('click',()=>{ pomFullscreen.style.display='none';});
+
+  // CALCULATOR
+  const calcDisplay=document.getElementById('calcDisplay');
+  document.querySelectorAll('#calcButtons button').forEach(btn=>{ btn.addEventListener('click',()=>{ const val=btn.innerText; if(val==='='){try{calcDisplay.value=eval(calcDisplay.value);}catch{alert("Error!");}} else if(val==='Clear'){calcDisplay.value='';} else calcDisplay.value+=val;}); });
+
+  // CALENDAR
+  const calendarGrid=document.getElementById('calendarGrid');
+  function renderCalendar(){ const now=new Date(); const days=new Date(now.getFullYear(),now.getMonth()+1,0).getDate(); const firstDay=new Date(now.getFullYear(),now.getMonth(),1).getDay(); calendarGrid.innerHTML=''; for(let i=0;i<firstDay;i++)calendarGrid.innerHTML+='<div></div>'; for(let i=1;i<=days;i++){ const div=document.createElement('div'); div.innerText=i; if(i===now.getDate()) div.style.background='#4CAF50'; div.style.color='#fff'; calendarGrid.appendChild(div);} }
+  renderCalendar();
+</script>
+</body>
+</html>
